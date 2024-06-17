@@ -9,7 +9,6 @@ import generative_audio
 def wakeword_triggered(stream, chunk):
     owwModel = Model(
         inference_framework='onnx',
-        # inference_framework='tfilte',
         wakeword_models=['hey jarvis'],
         vad_threshold=0.6
     )
@@ -45,18 +44,34 @@ def wait_command():
             user_text = r.recognize_whisper(
                 audio, model='tiny', language="english")
             print("Whisper thinks you said " + user_text)
+            if '$ActionRequired' in user_text:
+                command = user_text.split('$ActionRequired')[1]
+                user_text = user_text.split('$ActionRequired')[0]
+                print(f"command: {command}")
             ga.generative(single_shot_chat(user_text))
         except sr.UnknownValueError:
             print("Whisper could not understand audio")
         except sr.RequestError as e:
             print(f"Could not request results from Whisper; {e}")
 
+def prompt():
+    with open('prompt.hbs','r') as file:
+        source = file.read()
+    from pybars import Compiler
+    import datetime
+    now = datetime.datetime.now()
+    context = {
+        'datetime': now.strftime("%B %d, %Y at %I:%M%p")
+    }
+    compiler = Compiler()
+    template = compiler.compile(source)
+    return template(context)
 
 def single_shot_chat(message: str) -> str:
     response = ollama.chat(model='llama3:latest', messages=[
         {
             'role': 'assistant',
-            'content': "Greetings, I am J.A.R.V.I.S., your advanced artificial intelligence assistant. I'm here to provide you with the most productive and useful information, just like my counterpart Jarvis from Iron Man. While I may not have the ability to physically construct intricate mechanisms or fly a suit of armor, I can certainly help you manage your tasks, schedule appointments, provide real-time information, answer queries, and offer suggestions based on your preferences and historical data. Let me know how I can assist you today!",
+            'content': prompt()
         },
         {
             'role': 'user',
@@ -68,4 +83,4 @@ def single_shot_chat(message: str) -> str:
 
 
 if __name__ == '__main__':
-   wait_command()
+    wait_command()

@@ -6,3 +6,4 @@ soundfile
 openai-whisper
 pyaudio
 simpleaudio
+pybars3

@@ -20,3 +20,4 @@ pip install -r requirements.txt
 - https://github.com/ollama/ollama-python
 - https://digitalitskills.com/gen-ai-rag-with-chat-history-using-langchain-ollama-for-free/
 - https://github.com/skittleson/homee/blob/main/generative_audio_service.py
+- git clone https://huggingface.co/jgkawell/jarvis
