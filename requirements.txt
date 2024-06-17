@@ -1,0 +1,8 @@
+ollama
+SpeechRecognition
+SpeechRecognition[whisper-local]
+openwakeword
+soundfile
+openai-whisper
+pyaudio
+simpleaudio
