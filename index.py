@@ -54,11 +54,12 @@ def wait_command():
         except sr.RequestError as e:
             print(f"Could not request results from Whisper; {e}")
 
-def prompt():
-    with open('prompt.hbs','r') as file:
-        source = file.read()
+@staticmethod
+def prompt() -> str:
     from pybars import Compiler
     import datetime
+    with open('prompt.hbs','r') as file:
+        source = file.read()
     now = datetime.datetime.now()
     context = {
         'datetime': now.strftime("%B %d, %Y at %I:%M%p")
@@ -67,11 +68,17 @@ def prompt():
     template = compiler.compile(source)
     return template(context)
 
-def single_shot_chat(message: str) -> str:
-    response = ollama.chat(model='llama3:latest', messages=[
+
+@staticmethod
+def single_shot_chat(message: str, model: str = 'tinyllama', rag : bool = False) -> str:
+    # llama3.1:latest
+    prompt_content = ""
+    if rag:
+        prompt_content = prompt()
+    response = ollama.chat(model=model, messages=[
         {
             'role': 'assistant',
-            'content': prompt()
+            'content': prompt_content
         },
         {
             'role': 'user',
@@ -83,4 +90,6 @@ def single_shot_chat(message: str) -> str:
 
 
 if __name__ == '__main__':
-    wait_command()
+    print(ollama.list())
+    #wait_command()
+    # install()

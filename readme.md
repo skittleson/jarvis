@@ -2,8 +2,8 @@
 
 Just a JARVIS bot to talk too.
 
-
 ## Virtual env
+
 python -m venv venv
 
 .\venv\Scripts\activate
@@ -13,6 +13,8 @@ pip install -r requirements.txt
 ## Quick Start 🚀
 
 `python index.py`
+
+Say "Hey Jarvis"
 
 ## References
 
