@@ -72,6 +72,7 @@ def prompt() -> str:
 @staticmethod
 def single_shot_chat(message: str, model: str = 'tinyllama', rag : bool = False) -> str:
     # llama3.1:latest
+    # https://github.com/ollama/ollama/blob/main/examples/langchain-python-rag-document/main.py
     prompt_content = ""
     if rag:
         prompt_content = prompt()
