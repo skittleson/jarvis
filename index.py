@@ -1,18 +1,22 @@
+from rich.console import Console
+from rich.text import Text
+from rich.panel import Panel
+from rich.prompt import Prompt
 import numpy as np
 import openwakeword
 from openwakeword.model import Model
 import speech_recognition as sr
-import ollama
 import generative_audio
+console = Console()
 
 
-def wakeword_triggered(stream, chunk):
+def wake_word(stream, chunk):
     owwModel = Model(
         inference_framework='onnx',
         wakeword_models=['hey jarvis'],
         vad_threshold=0.6
     )
-    print("Listening for wakewords...")
+    console.log("Listening for wake words...")
     triggered = False
     while not triggered:
         sampled_audio = np.frombuffer(stream.read(chunk), dtype=np.int16)
@@ -28,14 +32,14 @@ def install():
     openwakeword.utils.download_models()
 
 
-def wait_command():
+def voice_command_wait():
     ga = generative_audio.GenerativeAudioService()
     while True:
         r = sr.Recognizer()
         with sr.Microphone(sample_rate=16000) as source:
-            wakeword_triggered(source.stream, source.CHUNK)
+            wake_word(source.stream, source.CHUNK)
             ga.ding()
-            print("Say something!")
+            console.log("Say something!")
             audio = r.listen(source)
 
     # recognize speech using whisper
@@ -43,22 +47,27 @@ def wait_command():
             ga.ding()
             user_text = r.recognize_whisper(
                 audio, model='tiny', language="english")
-            print("Whisper thinks you said " + user_text)
+            console.log(f"Whisper thinks you said {user_text}")
             if '$ActionRequired' in user_text:
                 command = user_text.split('$ActionRequired')[1]
                 user_text = user_text.split('$ActionRequired')[0]
-                print(f"command: {command}")
-            ga.generative(single_shot_chat(user_text))
+                console.log(f"command {command}")
+            llm_response = chat_stream([{
+                'role': 'assistant',
+                'content': prompt()
+            }, {"role": "user", "content": user_text}])
+            ga.generative(llm_response)
         except sr.UnknownValueError:
-            print("Whisper could not understand audio")
+            console.log("Whisper could not understand audio")
         except sr.RequestError as e:
-            print(f"Could not request results from Whisper; {e}")
+            console.log(e)
+
 
 @staticmethod
 def prompt() -> str:
     from pybars import Compiler
     import datetime
-    with open('prompt.hbs','r') as file:
+    with open('prompt.hbs', 'r') as file:
         source = file.read()
     now = datetime.datetime.now()
     context = {
@@ -70,27 +79,72 @@ def prompt() -> str:
 
 
 @staticmethod
-def single_shot_chat(message: str, model: str = 'tinyllama', rag : bool = False) -> str:
-    # llama3.1:latest
-    # https://github.com/ollama/ollama/blob/main/examples/langchain-python-rag-document/main.py
-    prompt_content = ""
-    if rag:
-        prompt_content = prompt()
-    response = ollama.chat(model=model, messages=[
-        {
+def chat_stream(messages: list[str], write_out):
+
+    # https://github.com/ollama/ollama/blob/main/examples/python-simplechat/client.py
+    import requests
+    import json
+    r = requests.post(
+        "http://127.0.0.1:11434/api/chat",
+        json={"model": 'llama3.1:latest', "messages": messages, "stream": True},
+        stream=True
+    )
+    r.raise_for_status()
+    output = ""
+
+    for line in r.iter_lines():
+        body = json.loads(line)
+        if "error" in body:
+            raise Exception(body["error"])
+        if body.get("done") is False:
+            message = body.get("message", "")
+            content = message.get("content", "")
+            output += content
+            write_out(content)
+
+        if body.get("done", False):
+            message["content"] = output
+            return message
+
+
+def cli():
+    messages = []
+    console.print(
+        Panel(Text("CLI Chat", justify="center", style="bold green")))
+    while True:
+        user_input = Prompt.ask("\n\n[bold blue]You[/bold blue]")
+        if not user_input:
+            exit()
+        elif 'command:clear' in user_input:
+            messages = []
+            console.print('cleared!')
+            continue
+        elif 'command:audio' in user_input:
+            audio = not audio
+            console.print(f'read out audio: {audio}')
+            continue
+
+        # redo the original rag prompt for this conversation
+        starter = {
             'role': 'assistant',
-            'content': prompt_content
-        },
-        {
-            'role': 'user',
-            'content': message,
-        },
-    ])
-    llm_response = response['message']['content']
-    return llm_response
+            'content': prompt()
+        }
+        if len(messages) == 0:
+            messages.append(starter)
+        else:
+            messages[0] = starter
+        messages.append({"role": "user", "content": user_input})
+
+        def write_out_func(content):
+            console.print(content, end='', style="bold yellow")
+        message = chat_stream(messages, write_out=write_out_func)
+        messages.append(message)
+        # if audio:
+        #     ga.generative(message['content'])
 
 
 if __name__ == '__main__':
-    print(ollama.list())
-    #wait_command()
+    cli()
+    # print(ollama.list())
+    # wait_command()
     # install()

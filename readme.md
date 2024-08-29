@@ -1,6 +1,6 @@
 # Jarvis
 
-Just a JARVIS bot to talk too.
+Just a JARVIS bot.  This a toy project.  
 
 ## Virtual env
 
@@ -16,6 +16,7 @@ pip install -r requirements.txt
 
 Say "Hey Jarvis"
 
+
 ## References
 
 - https://realpython.com/python-speech-recognition/#working-with-microphones
@@ -23,3 +24,4 @@ Say "Hey Jarvis"
 - https://digitalitskills.com/gen-ai-rag-with-chat-history-using-langchain-ollama-for-free/
 - https://github.com/skittleson/homee/blob/main/generative_audio_service.py
 - git clone https://huggingface.co/jgkawell/jarvis
+- https://realpython.com/python-application-layouts/

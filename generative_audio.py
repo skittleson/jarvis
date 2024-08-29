@@ -50,7 +50,6 @@ class GenerativeAudioService:
         # en_US-libritts-high
         # piper can stream to stdout using output_raw
         command = f"echo {shlex.quote(text)} | piper --model en_GB-northern_english_male-medium.onnx --output_file {temp_filename}"
-        print(command)
         GenerativeAudioService.shell(command)
         while not os.path.isfile(temp_filename):
             time.sleep(1)
