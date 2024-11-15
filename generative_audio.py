@@ -5,6 +5,7 @@ import psutil
 import os
 import signal
 from threading import Thread
+import subprocess
 
 class GenerativeAudioService:
     """
@@ -34,7 +35,7 @@ class GenerativeAudioService:
         """
         Command to start an interactive shell in WSL
         """
-        import subprocess
+        
         shell = ["wsl", "-d", distribution, "/bin/bash"]
         p = subprocess.run(shell, input=command, capture_output=True, text=True, timeout=10)
         return {'stdout': p.stdout, 'stderr': p.stderr, 'returncode': p.returncode}
@@ -50,7 +51,12 @@ class GenerativeAudioService:
         # en_US-libritts-high
         # piper can stream to stdout using output_raw
         command = f"echo {shlex.quote(text)} | piper --model en_GB-northern_english_male-medium.onnx --output_file {temp_filename}"
-        GenerativeAudioService.shell(command)
+        if os.name == 'posix':
+            # pip install piper-tts
+            # echo 'This sentence is spoken first. This sentence is synthesized while the first sentence is spoken.' |   piper --model en_GB-northern_english_male-medium.onnx --output-raw |   aplay -r 22050 -f S16_LE -t raw -
+            print('install piper-tts')
+        elif os.name == 'nt':
+            GenerativeAudioService.shell(command)
         while not os.path.isfile(temp_filename):
             time.sleep(1)
         GenerativeAudioService.play(temp_filename)

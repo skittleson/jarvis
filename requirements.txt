@@ -9,3 +9,4 @@ simpleaudio
 pybars3
 psutil
 rich
+requests

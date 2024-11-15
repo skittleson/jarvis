@@ -16,6 +16,12 @@ pip install -r requirements.txt
 
 Say "Hey Jarvis"
 
+## Roadmap
+
+- Simple RAG system for common the MCU
+- Ability to set a timers as agent "Set 5 minute. Clear Timers"
+- Ability to response with current computer CPU, RAM, Disk Usage
+- Realtime text to speech
 
 ## References
 

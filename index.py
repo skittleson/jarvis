@@ -33,11 +33,15 @@ def wake_word(stream, chunk):
 
 
 def install():
+    """install assets"""
+
     # this must be done once
     openwakeword.utils.download_models()
 
 
 def voice_command_wait():
+    """wait for the wakeword before doing analyzing the text"""
+
     ga = generative_audio.GenerativeAudioService()
     while True:
         r = sr.Recognizer()
@@ -51,7 +55,7 @@ def voice_command_wait():
         try:
             ga.ding()
             user_text = r.recognize_whisper(
-                audio, model='tiny', language="english")
+                audio, model='phi3.5:latest', language="english")
             console.log(f"Whisper thinks you said {user_text}")
             if '$ActionRequired' in user_text:
                 command = user_text.split('$ActionRequired')[1]
@@ -70,6 +74,8 @@ def voice_command_wait():
 
 @staticmethod
 def prompt() -> str:
+    """Generalize prompt to get a persona going."""
+
     with open('prompt.hbs', 'r', encoding='utf-8') as file:
         source = file.read()
     now = datetime.datetime.now()
@@ -110,6 +116,8 @@ def chat_stream(messages: list[str], write_out):
 
 
 def cli():
+    """cli for this app"""
+
     messages = []
     console.print(
         Panel(Text("CLI Chat", justify="center", style="bold green")))
@@ -117,11 +125,11 @@ def cli():
         user_input = Prompt.ask("\n\n[bold blue]You[/bold blue]")
         if not user_input:
             sys.exit()
-        elif 'command:clear' in user_input:
+        elif 'clear' in user_input:
             messages = []
             console.print('cleared!')
             continue
-        elif 'command:audio' in user_input:
+        elif 'toggle audio' in user_input:
             audio = not audio
             console.print(f'read out audio: {audio}')
             continue
@@ -146,7 +154,7 @@ def cli():
 
 
 if __name__ == '__main__':
-    cli()
+    install()
+    # cli()
     # print(ollama.list())
     # wait_command()
-    # install()
