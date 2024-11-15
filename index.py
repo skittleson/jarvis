@@ -1,3 +1,8 @@
+import sys
+import requests
+import json
+from pybars import Compiler
+import datetime
 from rich.console import Console
 from rich.text import Text
 from rich.panel import Panel
@@ -55,8 +60,8 @@ def voice_command_wait():
             llm_response = chat_stream([{
                 'role': 'assistant',
                 'content': prompt()
-            }, {"role": "user", "content": user_text}])
-            ga.generative(llm_response)
+            }, {"role": "user", "content": user_text}], console.print)
+            ga.generative(llm_response['content'])
         except sr.UnknownValueError:
             console.log("Whisper could not understand audio")
         except sr.RequestError as e:
@@ -65,9 +70,7 @@ def voice_command_wait():
 
 @staticmethod
 def prompt() -> str:
-    from pybars import Compiler
-    import datetime
-    with open('prompt.hbs', 'r') as file:
+    with open('prompt.hbs', 'r', encoding='utf-8') as file:
         source = file.read()
     now = datetime.datetime.now()
     context = {
@@ -82,12 +85,11 @@ def prompt() -> str:
 def chat_stream(messages: list[str], write_out):
 
     # https://github.com/ollama/ollama/blob/main/examples/python-simplechat/client.py
-    import requests
-    import json
     r = requests.post(
         "http://127.0.0.1:11434/api/chat",
         json={"model": 'llama3.1:latest', "messages": messages, "stream": True},
-        stream=True
+        stream=True,
+        timeout=60
     )
     r.raise_for_status()
     output = ""
@@ -114,7 +116,7 @@ def cli():
     while True:
         user_input = Prompt.ask("\n\n[bold blue]You[/bold blue]")
         if not user_input:
-            exit()
+            sys.exit()
         elif 'command:clear' in user_input:
             messages = []
             console.print('cleared!')
