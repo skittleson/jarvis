@@ -18,7 +18,7 @@ Say "Hey Jarvis"
 
 ## Roadmap
 
-- Simple RAG system for common the MCU
+- Simple RAG system for MCU
 - Ability to set a timers as agent "Set 5 minute. Clear Timers"
 - Ability to response with current computer CPU, RAM, Disk Usage
 - Realtime text to speech
