@@ -1,6 +1,6 @@
 # Jarvis
 
-Just a JARVIS bot.  This a toy project.  
+Just a JARVIS bot.  This is a toy project.  
 
 ## Virtual env
 
@@ -20,7 +20,6 @@ Say "Hey Jarvis"
 
 - Simple RAG system for MCU
 - Ability to set a timers as agent "Set 5 minute. Clear Timers"
-- Ability to response with current computer CPU, RAM, Disk Usage
 - Realtime text to speech
 
 ## References
