@@ -16,9 +16,17 @@ import openwakeword
 from openwakeword.model import Model
 import speech_recognition as sr
 import generative_audio
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 console = Console()
 
+whisper_model = os.getenv("WHISPER_MODEL")
+ollama_model = os.getenv("OLLAMA_MODEL")
+ollama_url = os.getenv("OLLAMA_URL")
+piper_model = os.getenv("PIPER_MODEL")
+audio_response_enabled = os.getenv("AUDIO_RESPONSE_ENABLED").lower() == 'true'
 
 def wake_word(stream, chunk) -> bool:
     """upon wake word, break out of endless loop"""
@@ -49,9 +57,9 @@ def strip_action_required(user_text: str) -> str | None:
     """Get the action out of text if provided."""
 
     if "$ActionRequired" in user_text:
-        command = user_text.split("$ActionRequired")[1]
-        console.log(f"command {command}")
-        return command
+        command = user_text.split("$ActionRequired")[1].strip()
+        if command[::-1][0] == '}':
+            return command
     return None
 
 
@@ -69,7 +77,7 @@ def voice_command_wait():
 
         try:
             ga.ding()
-            user_text = r.recognize_whisper(audio, language="english")
+            user_text = r.recognize_whisper(audio, language='english', model=whisper_model)
             console.log(f"Whisper thinks you said {user_text}")
             if "$ActionRequired" in user_text:
                 command = strip_action_required(user_text)
@@ -106,12 +114,11 @@ def prompt() -> str:
 def chat_stream(messages: list[str], write_out) -> str | None:
     """a list of messages"""
 
-    # "http://127.0.0.1:11434/api/chat",
     # https://github.com/ollama/ollama/blob/main/examples/python-simplechat/client.py
     r = requests.post(
-        "http://localhost:11434/api/chat",
+        f"{ollama_url}/api/chat",
         json={
-            "model": "phi3:mini",
+            "model": ollama_model,
             "messages": messages,
             "stream": True,
             "keep_alive": 3600,
@@ -156,6 +163,7 @@ def is_command_available(command: str) -> bool:
 def cli():
     """cli for this app"""
 
+    audio = audio_response_enabled
     messages = []
     console.print(Panel(Text("CLI Chat", justify="center", style="bold green")))
     while True:
@@ -183,9 +191,11 @@ def cli():
             console.print(content, end="", style="bold yellow")
 
         message = chat_stream(messages, write_out=write_out_func)
+        command = strip_action_required(message['content'])
+        if command is not None:
+            message['content'] = message['content'].split("$ActionRequired")[0].strip()
         messages.append(message)
-        if audio:
-            speak(message['content'])
+        speak(message['content'])
 
 
 def speak(text: str):
@@ -195,17 +205,16 @@ def speak(text: str):
         "bash",
         "-c",
         f"echo {shlex.quote(text)} | "
-        "piper --model en_GB-northern_english_male-medium.onnx --output-raw | "
+        f"piper --model {piper_model}.onnx --output-raw | "
         "ffplay -autoexit -nodisp -hide_banner -loglevel error -f s16le -ar 22050 -ac 1 -i -",
     ]
-    subprocess.run(command, check=True)
+    subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
 
 
 if __name__ == "__main__":
     install()
     for command_type in ["ffmpeg", "ffplay", "piper"]:
         is_command_available(command_type)
-    # speak("this is a test")
 
     cli()
     # print(ollama.list())

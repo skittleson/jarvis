@@ -8,3 +8,4 @@ pybars3
 psutil
 rich
 requests
+python-dotenv
