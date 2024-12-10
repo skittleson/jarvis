@@ -9,3 +9,6 @@ A:Setting a 60 minute timer sir. $ActionRequired {"service": "timer", "minutes":
 
 Q:Remind be in 3 hours.
 A:Current time is 8am, will remind you at . $ActionRequired {"service": "remind", "datetime": "2018-12-10T11:00:00.000Z"}
+
+Q:Clear timers.
+A:Clearing all timers. $ActionRequired {"service": "timer", "action:"clear"}
