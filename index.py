@@ -18,6 +18,7 @@ import speech_recognition as sr
 import generative_audio
 from dotenv import load_dotenv
 import os
+
 load_dotenv()
 
 console = Console()
@@ -26,7 +27,8 @@ whisper_model = os.getenv("WHISPER_MODEL")
 ollama_model = os.getenv("OLLAMA_MODEL")
 ollama_url = os.getenv("OLLAMA_URL")
 piper_model = os.getenv("PIPER_MODEL")
-audio_response_enabled = os.getenv("AUDIO_RESPONSE_ENABLED").lower() == 'true'
+audio_response_enabled = os.getenv("AUDIO_RESPONSE_ENABLED").lower() == "true"
+
 
 def wake_word(stream, chunk) -> bool:
     """upon wake word, break out of endless loop"""
@@ -57,8 +59,10 @@ def strip_action_required(user_text: str) -> str | None:
     """Get the action out of text if provided."""
 
     if "$ActionRequired" in user_text:
+        
+        # TODO error checking required here.
         command = user_text.split("$ActionRequired")[1].strip()
-        if command[::-1][0] == '}':
+        if command[::-1][0] == "}":
             return command
     return None
 
@@ -77,7 +81,9 @@ def voice_command_wait():
 
         try:
             ga.ding()
-            user_text = r.recognize_whisper(audio, language='english', model=whisper_model)
+            user_text = r.recognize_whisper(
+                audio, language="english", model=whisper_model
+            )
             console.log(f"Whisper thinks you said {user_text}")
             if "$ActionRequired" in user_text:
                 command = strip_action_required(user_text)
@@ -122,6 +128,7 @@ def chat_stream(messages: list[str], write_out) -> str | None:
             "messages": messages,
             "stream": True,
             "keep_alive": 3600,
+            "options": {"num_predict": 100}
         },
         stream=True,
         timeout=120,
@@ -183,6 +190,13 @@ def cli():
         starter = {"role": "assistant", "content": prompt()}
         if len(messages) == 0:
             messages.append(starter)
+            messages.append({"role": "user", "content": "set a 5 minute timer"})
+            messages.append(
+                {
+                    "assistant": "user",
+                    "content": 'Setting up your countdown clock now... and here is to hoping you can finish whatever it is within five minutes, or I might have to start dingling. $ActionRequired {"service": "timer", "minutes": 5}',
+                }
+            )
         else:
             messages[0] = starter
         messages.append({"role": "user", "content": user_input})
@@ -191,11 +205,11 @@ def cli():
             console.print(content, end="", style="bold yellow")
 
         message = chat_stream(messages, write_out=write_out_func)
-        command = strip_action_required(message['content'])
+        command = strip_action_required(message["content"])
         if command is not None:
-            message['content'] = message['content'].split("$ActionRequired")[0].strip()
+            message["content"] = message["content"].split("$ActionRequired")[0].strip()
         messages.append(message)
-        speak(message['content'])
+        speak(message["content"])
 
 
 def speak(text: str):
@@ -208,7 +222,7 @@ def speak(text: str):
         f"piper --model {piper_model}.onnx --output-raw | "
         "ffplay -autoexit -nodisp -hide_banner -loglevel error -f s16le -ar 22050 -ac 1 -i -",
     ]
-    subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
+    subprocess.Popen(command)
 
 
 if __name__ == "__main__":
