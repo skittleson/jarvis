@@ -9,3 +9,5 @@ psutil
 rich
 requests
 python-dotenv
+spacy
+scikit-learn

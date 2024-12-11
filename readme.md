@@ -10,6 +10,8 @@ python -m venv venv
 
 pip install -r requirements.txt
 
+python -m spacy download en_core_web_sm
+
 ## Quick Start 🚀
 
 `python index.py`
@@ -21,6 +23,7 @@ Say "Hey Jarvis"
 - Simple RAG system for MCU
 - Ability to set a timers as agent "Set 5 minute. Clear Timers"
 - Realtime text to speech
+-
 
 ## References
 
