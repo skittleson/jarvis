@@ -15,6 +15,17 @@ def test_set_reminder():
     assert action == "set_reminder"
     assert data == {"location": "tomorrow", "task": "appointment"}
 
+def test_start_routine():
+    action, data = classify_and_extract("start morning routine")
+    assert action == "start_routine"
+    assert data == {"location": "morning", "task": "routine"}
+
+def test_execute():
+    action, data = classify_and_extract("execute test 123")
+    assert action == "execute_task"
+    assert data == {"location": "test"}
+
+
 # def test_play_song():
 #     action, data = classify_and_extract("play this song")
 #     assert action == "play_song"
