@@ -59,7 +59,7 @@ def strip_action_required(user_text: str) -> str | None:
     """Get the action out of text if provided."""
 
     if "$ActionRequired" in user_text:
-        
+
         # TODO error checking required here.
         command = user_text.split("$ActionRequired")[1].strip()
         if command[::-1][0] == "}":
@@ -131,7 +131,7 @@ def chat_stream(messages: list[str], write_out) -> str | None:
             "options": {"num_predict": 100}
         },
         stream=True,
-        timeout=120,
+        timeout=60,
     )
     r.raise_for_status()
     output = ""
@@ -143,6 +143,8 @@ def chat_stream(messages: list[str], write_out) -> str | None:
             message = body.get("message", "")
             content = message.get("content", "")
             output += content
+
+            #NOTE might be useful to add an ability to inspect the content to end it sooner
             write_out(content)
 
         if body.get("done", False):

@@ -30,3 +30,5 @@ Say "Hey Jarvis"
 - https://github.com/skittleson/homee/blob/main/generative_audio_service.py
 - git clone https://huggingface.co/jgkawell/jarvis
 - https://realpython.com/python-application-layouts/
+
+TODO https://github.com/mtayyab2/RAG/blob/main/rag.py
