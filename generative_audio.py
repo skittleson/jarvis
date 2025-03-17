@@ -1,4 +1,4 @@
-import simpleaudio as sa
+# import simpleaudio as sa
 import os
 import subprocess
 import psutil
@@ -39,6 +39,15 @@ class GenerativeAudioService:
         shell = ["wsl", "-d", distribution, "/bin/bash"]
         p = subprocess.run(shell, input=command, capture_output=True, text=True, timeout=10)
         return {'stdout': p.stdout, 'stderr': p.stderr, 'returncode': p.returncode}
+    
+    @staticmethod
+    def shell_passthru(command: str):
+        """
+        Command to start an interactive shell
+        """
+        
+        p = subprocess.run(command, capture_output=True, text=True, timeout=120)
+        return {'stdout': p.stdout, 'stderr': p.stderr, 'returncode': p.returncode}
 
 
     def generative(self, text: str):
@@ -52,6 +61,7 @@ class GenerativeAudioService:
         # piper can stream to stdout using output_raw
         command = f"echo {shlex.quote(text)} | piper --model en_GB-northern_english_male-medium.onnx --output_file {temp_filename}"
         if os.name == 'posix':
+            
             # pip install piper-tts
             # echo 'This sentence is spoken first. This sentence is synthesized while the first sentence is spoken.' |   piper --model en_GB-northern_english_male-medium.onnx --output-raw |   aplay -r 22050 -f S16_LE -t raw -
             print('install piper-tts')
@@ -64,10 +74,11 @@ class GenerativeAudioService:
 
     @staticmethod
     def play(filename: str, blocking: bool = True):
-        wave_obj = sa.WaveObject.from_wave_file(filename)
-        play_obj = wave_obj.play()
-        if blocking:
-            play_obj.wait_done()
+        print(filename)
+        # wave_obj = sa.WaveObject.from_wave_file(filename)
+        # play_obj = wave_obj.play()
+        # if blocking:
+        #     play_obj.wait_done()
 
     @staticmethod
     def ding():

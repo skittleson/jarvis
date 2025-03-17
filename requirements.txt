@@ -4,9 +4,10 @@ SpeechRecognition[whisper-local]
 openwakeword
 soundfile
 openai-whisper
-pyaudio
-simpleaudio
 pybars3
 psutil
 rich
 requests
+python-dotenv
+spacy
+scikit-learn
